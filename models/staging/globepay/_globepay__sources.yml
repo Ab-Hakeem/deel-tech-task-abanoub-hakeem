@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: globepay
+    database: DEEL_DB
+    schema: DBT_AHAKEEM
+    description: "Raw payment data from the Globepay API seeds. This comes in the form of 2 csv files."
+    tables:
+      - name: globepay_acceptance_report
+        description: "List of all payment attempts and their status."
+        identifier: globepay_acceptance_report
+      - name: globepay_chargeback_report
+        description: "Records of payments that were charged back."
+        identifier: globepay_chargeback_report
