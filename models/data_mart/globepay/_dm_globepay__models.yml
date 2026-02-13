@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: dm_globepay__fact_payments
+    description: >
+      The primary fact table for Globepay analytics. 
+      Contains all transaction attempts with standardised USD converted amounts, 
+      human readable country names, and chargeback status flags. This model enables
+      the analyts to answer every question that was requested.
+    columns:
+      - name: payment_id
+        description: > 
+          Unique identifier for each transaction attempt
+        tests:
+          - unique
+          - not_null
+      - name: payment_state
+        description: >
+          The outcome of the transaction: ACCEPTED or DECLINED.
+      - name: amount_usd
+        description: > 
+          The local amount converted to USD at the time of transaction, rounded to 2 decimal places.
+      - name: country_name
+        description: > 
+          Full country name derived from the country_code mapping seed.
+  - name: dm_globepay__agg_acceptance_trends
+    description: >
+      A high-level reporting mart providing payment success metrics across multiple 
+      time periods. This is the primary source for the 'Acceptance Rate over Time' 
+      business requirement.
+      
+      Filter by the 'time_grain' column (day, week, month, etc.) to 
+      view trends. Ideal for executive dashboards and long-term performance tracking.
+
+  - name: dm_globepay__declined_summary_by_country
+    description: >
+      A standardised summary of all declined transaction volume, enriched with 
+      country names. 
+      
+      Use this mart for general failed-payment analysis and regional 
+      risk assessments. It provides the total USD volume of lost opportunities 
+      without requiring complex joins.
+
+  - name: dm_globepay__declined_payments_over_25m_country_list
+    description: >
+      A filtered, data mart identifying specific regions where declined 
+      volume has exceeded the $25M threshold.
+      
+      This is a direct answer to the Deel finance challenge. It is 
+      strictly used for high-stakes exception reporting and identifying countries 
+      that require immediate operational investigation.
+
+  - name: dm_globepay__audit_missing_chargebacks
+    description: >
+      A finalised audit report for the Finance Operations team to identify and 
+      resolve data discrepancies between reports.
+      
+      This model displays payments found in the Acceptance records 
+      but missing from Chargeback data. It is intended for operational reconciliation 
+      with Globepay and represents a proactive approach to data governance.
