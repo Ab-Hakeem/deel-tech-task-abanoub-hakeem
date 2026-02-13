@@ -12,3 +12,6 @@ sources:
       - name: globepay_chargeback_report
         description: "Records of payments that were charged back."
         identifier: globepay_chargeback_report
+      - name: globepay_country_mapping
+        description: "A country_code to country mapping file to enable readability and ease of understanding to
+          analysts. It also enable the analysts to update the mapping file if Deel added 50 new country codes."

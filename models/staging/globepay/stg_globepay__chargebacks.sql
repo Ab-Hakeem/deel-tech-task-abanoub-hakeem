@@ -6,8 +6,8 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        external_ref as payment_id,
-        status,
+        external_ref AS payment_id,
+        status AS chargeback_status,
         source,
         chargeback
         

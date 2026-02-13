@@ -6,18 +6,18 @@ WITH source AS (
 
 renamed AS (
     SELECT
-        external_ref as payment_id,
-        status,
+        external_ref AS payment_id,
+        status AS payment_status,
         source,
-        ref as internal_reference_id,
-        date_time as created_at,
-        state,
-        cvv_provided as is_cvv_provided,
-        amount as amount_local,
-        country as country_code,
-        currency as currency_code,
+        ref AS internal_reference_id,
+        date_time AS created_at,
+        state AS payment_state,
+        cvv_provided AS is_cvv_provided,
+        amount AS amount_local,
+        country AS country_code,
+        currency AS currency_code,
         -- Keep rates as JSON for the intermediate layer to handle conversion
-        rates as exchange_rates_json
+        rates AS exchange_rates_json
 
     FROM source
 )

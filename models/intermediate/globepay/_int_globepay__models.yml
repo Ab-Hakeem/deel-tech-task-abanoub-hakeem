@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: int_payments__converted
+    description: >
+      This intermediate model standardises all payment attempts into a unified settlement currency (USD).
+      
+      Key Logic:
+      - Grain Preservation: Unlike a flattening approach, this model uses dynamic JSON extraction (`GET`) to look up the 
+          exchange rate relative to the transaction's `currency_code` directly from the `exchange_rates_json` field. 
+          This ensures the grain remains 1 row per payment attempt.
+      - Currency Normalisation: Calculated as `amount_local / exchange_rate`. 
+      
+      **Business Purpose:**
+      Acts as the foundation for multi-country volume analysis and fulfills the requirement for USD-based financial reporting.
+    columns:
+      - name: payment_id
+        description: "Primary key for the transaction, renamed from external_ref."
+        tests:
+          - unique
+          - not_null
+      - name: amount_usd
+        description: "The transaction amount converted to USD at the time of the attempt, used for global volume metrics."
+
+  - name: int_globepay__converted_payments_and_chargebacks
+    description: >
+        This intermediate model joins USD-standardized payments with chargeback data. 
+        It identifies data gaps where acceptance records lack matching chargeback records.
+    columns:
+      - name: payment_id
+        tests:
+          - unique
+          - not_null
+      - name: payment_state
+        description: "The state of the payment: ACCEPTED or DECLINED."
+      - name: amount_usd
+        description: "The local amount converted to USD if not of a USD currency, rounded to 2 decimal points"
+        tests:
+          - not_null
+      - name: is_missing_chargeback_record
+        description: "Flag indicating whether the payment is missing from the chargeback report."
+      - name: country_name
+        description: "This field is created via a seed mapping file from the country_code field to determine
+          the country name. I have instituted a not_null test for this field as it will highlight that if it
+          is null, then there has been an addition to the country code that we are not aware of and therefore
+          will act as a safety mechanism for the analyst to update the mapping file"
+        tests:
+          - not_null
