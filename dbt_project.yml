@@ -27,5 +27,5 @@ models:
       +schema: intermediate
       +materialized: view
     marts:
-      +schema: data mart
-      +materialized: table
+      +schema: data_mart
+      +materialized: view

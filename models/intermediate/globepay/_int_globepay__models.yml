@@ -11,8 +11,7 @@ models:
           This ensures the grain remains 1 row per payment attempt.
       - Currency Normalisation: Calculated as `amount_local / exchange_rate`. 
       
-      **Business Purpose:**
-      Acts as the foundation for multi-country volume analysis and fulfills the requirement for USD-based financial reporting.
+      This model acts as the foundation for multi-country volume analysis and fulfills the requirement for USD based financial reporting.
     columns:
       - name: payment_id
         description: "Primary key for the transaction, renamed from external_ref."
@@ -20,7 +19,8 @@ models:
           - unique
           - not_null
       - name: amount_usd
-        description: "The transaction amount converted to USD at the time of the attempt, used for global volume metrics."
+        description: > 
+          The transaction amount converted to USD at the time of the attempt, used for global volume metrics.
 
   - name: int_globepay__converted_payments_and_chargebacks
     description: >
@@ -32,17 +32,53 @@ models:
           - unique
           - not_null
       - name: payment_state
-        description: "The state of the payment: ACCEPTED or DECLINED."
+        description: > 
+          The state of the payment: ACCEPTED or DECLINED.
       - name: amount_usd
-        description: "The local amount converted to USD if not of a USD currency, rounded to 2 decimal points"
+        description: >
+          The local amount converted to USD if not of a USD currency, rounded to 2 decimal points
         tests:
           - not_null
-      - name: is_missing_chargeback_record
-        description: "Flag indicating whether the payment is missing from the chargeback report."
       - name: country_name
-        description: "This field is created via a seed mapping file from the country_code field to determine
+        description: >
+          This field is created via a seed mapping file from the country_code field to determine
           the country name. I have instituted a not_null test for this field as it will highlight that if it
           is null, then there has been an addition to the country code that we are not aware of and therefore
-          will act as a safety mechanism for the analyst to update the mapping file"
+          will act as a safety mechanism for the analyst to update the mapping file
         tests:
           - not_null
+
+  - name: int_globepay__agg_acceptance_trends
+    description: >
+      An aggregation model providing pre-calculated payment acceptance metrics 
+      at multiple time dimensions (Daily, Weekly, Monthly, Quarterly, and Yearly).
+      
+      Grain: 1 row per Time Grain per Date
+      
+      Logic: Uses a UNION ALL strategy to aggregate the transaction-level fact table. 
+      This centralizes the 'Acceptance Rate' calculation logic to ensure consistency across 
+      all reporting grains and prevents the 'average of averages' fallacy in BI tools.
+
+  - name: int_globepay__declined_summary_by_country
+    description: >
+      An aggregation model that summarises financial loss due to failed transactions, 
+      partitioned by country and currency.
+      
+      Grain: 1 row per Country per Currency.
+      
+      Logic: Filters for transactions with a 'DECLINED' status and sums the 
+      standardised USD amounts. This model serves as the logic layer 
+      for identifying high-friction regions, such as those exceeding the $25M 
+      threshold required for business reporting.
+       
+  - name: int_globepay__audit_missing_chargebacks
+    description: >
+      An audit-specific model designed to identify data integrity gaps between 
+      upstream reporting systems.
+      
+      Grain: 1 row per missing Payment ID.
+      
+      Logic: Performs a 'NOT EXISTS' anti-join between the Acceptance and 
+      Chargeback sources. It identifies records that were successfully processed 
+      but never recorded in the chargeback ledger. It also enriches these records 
+      with human-readable country names for operational follow-up.

@@ -45,7 +45,7 @@ joined_payments_and_chargebacks AS (
         converted_payments.currency_code,
         converted_payments.amount_usd,
         -- If a match is found in the chargeback report, use that value, else default to FALSE
-        COALESCE(chargebacks.chargeback, false) AS is_chargeback,
+        chargebacks.chargeback AS is_chargeback,
         -- Business Logic for Question 3: 
         -- If the payment_id does not exist in the chargeback table, the record is "missing"
         CASE 
